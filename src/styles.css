@@ -89,6 +89,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .progress { position: absolute; left: 0; right: 0; bottom: 84px; height: 3px; background: #ffffff33; }
 .progress > div { height: 3px; background: var(--orange); }
 
+.empty-feed { background: var(--blue); }
+.empty-feed-body { position: absolute; left: 32px; right: 32px; top: 34%; text-align: center; }
+.empty-feed-body h1 { font-size: 28px; }
+.empty-feed-body p { font-size: 15px; line-height: 1.45; margin: 12px 0 20px; }
+.empty-feed-body .pill { padding: 12px 22px; font-size: 15px; }
+.empty-hint { margin-top: 10px; border: 2px dashed #1A1AA766; border-radius: 12px; padding: 16px; text-align: center; font-size: 14px; line-height: 1.4; color: var(--ink); }
+.empty-hint .pill { margin-top: 12px; }
+
 /* Familie */
 .reminder { margin-top: 12px; background: var(--sky); border-radius: 12px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; }
 .reminder-day { font-size: 26px; width: 44px; text-align: center; }
@@ -209,7 +217,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   background: #fff repeating-linear-gradient(45deg, #1A1AA71a 0 8px, transparent 8px 16px);
   display: flex; align-items: center; justify-content: center; font: 11px var(--mono);
 }
-.invite-link { border: 2px solid var(--blue); border-radius: 10px; padding: 10px; font: 13px var(--mono); color: var(--ink); background: #fff; }
+.field { display: block; margin-top: 14px; font-size: 13px; font-weight: 700; }
+.field input {
+  display: block; width: 100%; margin-top: 6px; border-radius: 10px; border: 2px solid var(--blue); padding: 10px 12px;
+  font: 16px RobotoF, sans-serif; outline: 0; background: #fff; color: var(--ink);
+}
 .sheet-text-btn { margin: 10px auto 0; font-weight: 700; font-size: 14px; }
 
 @keyframes rise { from { transform: translateY(100%); } }

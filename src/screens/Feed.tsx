@@ -47,8 +47,25 @@ function FeedVideo({ src, playing, muted, onProgress, onEnded, onBlocked }: Feed
   );
 }
 
-export default function Feed({ s, dispatch }: ScreenProps) {
-  const p = currentPost(s);
+export default function Feed(props: ScreenProps) {
+  return currentPost(props.s) ? <FeedPlayer {...props} /> : <EmptyFeed {...props} />;
+}
+
+function EmptyFeed({ dispatch }: ScreenProps) {
+  return (
+    <div className="screen empty-feed">
+      <div className="fill stripes-faint" />
+      <div className="empty-feed-body">
+        <h1 className="display">Noch keine Clips</h1>
+        <p>Nimm deinen ersten Clip auf – er erscheint dann hier im Feed.</p>
+        <button className="pill pill-orange" onClick={() => dispatch({ type: 'go', tab: 'rec' })}>Ersten Clip aufnehmen</button>
+      </div>
+    </div>
+  );
+}
+
+function FeedPlayer({ s, dispatch }: ScreenProps) {
+  const p = currentPost(s)!;
   const liked = !!s.liked[p.id];
   const saved = !!s.saved[p.id];
   const [muted, setMuted] = useState(false);
@@ -90,7 +107,7 @@ export default function Feed({ s, dispatch }: ScreenProps) {
     >
       <div className="fill" style={{ background: p.bg }} />
       {p.video ? (
-        <FeedVideo key={p.id} src={p.video} playing={!s.paused && !s.sheet} muted={muted}
+        <FeedVideo key={p.id + '-' + s.idx} src={p.video} playing={!s.paused && !s.sheet} muted={muted}
           onProgress={(v) => dispatch({ type: 'setProg', value: v })}
           onEnded={() => dispatch({ type: 'next' })}
           onBlocked={muteOnBlock} />
