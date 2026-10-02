@@ -2,14 +2,16 @@ import { C, ME } from '../data';
 import type { ScreenProps } from '../types';
 import Avatar from '../components/Avatar';
 
-const SAMPLE_CLIPS = [
+type Clip = { bg: string; v: number; video?: string };
+
+const SAMPLE_CLIPS: Clip[] = [
   { bg: C.blue, v: 21 },
   { bg: C.orange, v: 14 },
   { bg: C.gray, v: 8 },
 ];
 
 export default function Profile({ s, dispatch }: ScreenProps) {
-  const grid = [...s.posted.map(() => ({ bg: C.blue, v: 0 })), ...SAMPLE_CLIPS];
+  const grid: Clip[] = [...s.posted.map((p) => ({ bg: C.blue, v: 0, video: p.video })), ...SAMPLE_CLIPS];
 
   return (
     <div className="screen light scroll" style={{ paddingLeft: 18, paddingRight: 18 }}>
@@ -38,7 +40,9 @@ export default function Profile({ s, dispatch }: ScreenProps) {
 
       <div className="clip-grid">
         {grid.map((c, k) => (
-          <div key={k} className="clip" style={{ background: c.bg }}>
+          <div key={k} className={'clip' + (c.video ? '' : ' clip-stripes')} style={{ background: c.bg }}>
+            {/* #t=0.1 lässt iOS ein Standbild als Vorschau zeigen */}
+            {c.video && <video src={c.video + '#t=0.1'} muted playsInline preload="metadata" />}
             <span>▶ {c.v}</span>
           </div>
         ))}

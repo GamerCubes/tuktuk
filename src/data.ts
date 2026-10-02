@@ -12,7 +12,11 @@ export type Post = {
   sound: string;
   likes: number;
   cc: number;
+  /** Object-URL eines echten Clips (nur lokal auf diesem Gerät). */
+  video?: string;
 };
+
+export type Media = { url: string; mime: string };
 
 export type Comment = { who: string; i: string; c: string; text: string; l: number };
 
