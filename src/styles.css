@@ -26,10 +26,17 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   background: var(--ink); color: var(--cream);
   box-shadow: 0 0 0 10px #111, 0 30px 80px rgba(0, 0, 0, .5);
 }
-/* Vollbild auf schmalen Screens, allen Touch-Geräten und als installierte App – unabhängig von der gemeldeten Breite */
+/* Vollbild auf schmalen Screens, allen Touch-Geräten und als installierte App – unabhängig von der gemeldeten Breite.
+   Gleiche Bedingung wie FULLSCREEN_QUERY in uiScale.ts; --ui-scale vergrößert die App auf Geräten mit breitem Layout. */
 @media (max-width: 500px), (hover: none) and (pointer: coarse), (display-mode: standalone), (display-mode: fullscreen) {
-  .wrap { padding: 0; min-height: 100dvh; }
-  .phone { width: 100vw; height: 100dvh; border-radius: 0; box-shadow: none; }
+  html, body { overflow: hidden; touch-action: pan-x pan-y; } /* kein Pinch-Zoom wie in einer App */
+  body { background: var(--ink); }
+  .wrap { display: block; padding: 0; height: 100dvh; min-height: 0; overflow: hidden; }
+  .phone {
+    width: calc(100vw / var(--ui-scale, 1)); height: calc(100dvh / var(--ui-scale, 1));
+    transform: scale(var(--ui-scale, 1)); transform-origin: 0 0;
+    border-radius: 0; box-shadow: none;
+  }
 }
 
 /* Grundbausteine */
