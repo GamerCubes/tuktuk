@@ -1,9 +1,12 @@
-import { BASE_COMMENTS, C, ME, POSTS, type Comment, type Media, type Post } from './data';
+import { C, ME_COLOR, displayName, initialOf, type Comment, type Media, type Post, type Profile } from './data';
+import type { Restored } from './storage';
 
 export type Tab = 'feed' | 'fam' | 'rec' | 'post' | 'profil';
-export type Sheet = '' | 'comments' | 'share' | 'invite';
+export type Sheet = '' | 'comments' | 'share' | 'invite' | 'profile';
 
 export type State = {
+  /** true, sobald gespeicherte Inhalte vom Gerät geladen sind */
+  loaded: boolean;
   tab: Tab;
   idx: number;
   prog: number;
@@ -13,8 +16,7 @@ export type State = {
   sheet: Sheet;
   comments: Record<string, Comment[]>;
   cDraft: string;
-  shared: Record<string, boolean>;
-  copied: boolean;
+  profile: Profile;
   rec: boolean;
   secs: number;
   maxLen: number;
@@ -27,6 +29,7 @@ export type State = {
 };
 
 export const initialState: State = {
+  loaded: false,
   tab: 'feed',
   idx: 0,
   prog: 0,
@@ -36,8 +39,7 @@ export const initialState: State = {
   sheet: '',
   comments: {},
   cDraft: '',
-  shared: {},
-  copied: false,
+  profile: { name: '', family: '' },
   rec: false,
   secs: 0,
   maxLen: 40,
@@ -50,6 +52,7 @@ export const initialState: State = {
 
 export type Action =
   | { type: 'tick' }
+  | { type: 'hydrate'; data: Restored | null }
   | { type: 'go'; tab: Tab }
   | { type: 'next' }
   | { type: 'prev' }
@@ -60,8 +63,7 @@ export type Action =
   | { type: 'closeSheet' }
   | { type: 'setCDraft'; value: string }
   | { type: 'sendComment'; id: string }
-  | { type: 'toggleShare'; name: string }
-  | { type: 'copyInvite' }
+  | { type: 'setProfile'; profile: Profile }
   | { type: 'toggleRec' }
   | { type: 'setProg'; value: number }
   | { type: 'setMedia'; media: Media }
@@ -72,17 +74,13 @@ export type Action =
 
 export const TICK_MS = 100;
 
-export function feedList(s: State): Post[] {
-  return [...s.posted, ...POSTS];
-}
-
-export function currentPost(s: State): Post {
-  const list = feedList(s);
-  return list[s.idx % list.length];
+export function currentPost(s: State): Post | undefined {
+  const list = s.posted;
+  return list.length ? list[s.idx % list.length] : undefined;
 }
 
 export function commentsFor(s: State, id: string): Comment[] {
-  return [...(s.comments[id] ?? []), ...BASE_COMMENTS];
+  return s.comments[id] ?? [];
 }
 
 export function commentCount(s: State, p: Post): number {
@@ -103,12 +101,15 @@ export function reducer(s: State, a: Action): State {
         return n >= s.maxLen ? stopRec(s, s.maxLen) : { ...s, secs: n };
       }
       // Echte Videos treiben den Fortschritt selbst (siehe setProg)
-      if (s.tab === 'feed' && !s.paused && !s.sheet && !currentPost(s).video) {
-        const n = s.prog + 100 / (currentPost(s).len * (1000 / TICK_MS));
+      const p = currentPost(s);
+      if (p && !p.video && s.tab === 'feed' && !s.paused && !s.sheet) {
+        const n = s.prog + 100 / (p.len * (1000 / TICK_MS));
         return n >= 100 ? reducer(s, { type: 'next' }) : { ...s, prog: n };
       }
       return s;
     }
+    case 'hydrate':
+      return { ...s, ...(a.data ?? {}), loaded: true };
     case 'go':
       return { ...s, tab: a.tab, sheet: '', paused: false, rec: false, secs: 0, prog: a.tab === 'feed' ? s.prog : 0 };
     case 'next':
@@ -122,7 +123,7 @@ export function reducer(s: State, a: Action): State {
     case 'toggleSave':
       return { ...s, saved: toggle(s.saved, a.id) };
     case 'openSheet':
-      return { ...s, sheet: a.sheet, copied: a.sheet === 'invite' ? false : s.copied };
+      return { ...s, sheet: a.sheet };
     case 'closeSheet':
       return { ...s, sheet: '' };
     case 'setCDraft':
@@ -130,13 +131,11 @@ export function reducer(s: State, a: Action): State {
     case 'sendComment': {
       const text = s.cDraft.trim();
       if (!text) return s;
-      const c: Comment = { who: ME.name, i: ME.ini, c: ME.color, text, l: 0 };
+      const c: Comment = { who: displayName(s.profile), i: initialOf(s.profile), c: ME_COLOR, text, l: 0 };
       return { ...s, cDraft: '', comments: { ...s.comments, [a.id]: [c, ...(s.comments[a.id] ?? [])] } };
     }
-    case 'toggleShare':
-      return { ...s, shared: toggle(s.shared, a.name) };
-    case 'copyInvite':
-      return { ...s, copied: true };
+    case 'setProfile':
+      return { ...s, profile: a.profile, sheet: '' };
     case 'toggleRec':
       return s.rec ? stopRec(s, Math.max(1, s.secs)) : { ...s, rec: true, secs: 0, media: null };
     case 'setProg':
@@ -150,10 +149,11 @@ export function reducer(s: State, a: Action): State {
     case 'setAud':
       return { ...s, aud: a.value };
     case 'publish': {
+      const name = displayName(s.profile);
       const np: Post = {
-        id: 'n' + Date.now(), fam: true, name: ME.name, ini: ME.ini, role: 'Du', bg: C.sky, avc: ME.color,
+        id: 'n' + Date.now(), name, ini: initialOf(s.profile), role: 'Du', bg: C.sky, avc: ME_COLOR,
         len: s.lastLen || 10, scene: 'Dein neuer Clip', caption: s.draft || 'Neuer Clip',
-        sound: 'Originalton · ' + ME.name, likes: 0, cc: 0, video: s.media?.url,
+        sound: 'Originalton · ' + name, likes: 0, cc: 0, video: s.media?.url,
       };
       return { ...s, posted: [np, ...s.posted], media: null, draft: '', idx: 0, prog: 0, tab: 'feed' };
     }
