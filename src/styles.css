@@ -26,7 +26,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   background: var(--ink); color: var(--cream);
   box-shadow: 0 0 0 10px #111, 0 30px 80px rgba(0, 0, 0, .5);
 }
-@media (max-width: 500px) {
+/* Vollbild auf schmalen Screens, allen Touch-Geräten und als installierte App – unabhängig von der gemeldeten Breite */
+@media (max-width: 500px), (hover: none) and (pointer: coarse), (display-mode: standalone), (display-mode: fullscreen) {
   .wrap { padding: 0; min-height: 100dvh; }
   .phone { width: 100vw; height: 100dvh; border-radius: 0; box-shadow: none; }
 }
