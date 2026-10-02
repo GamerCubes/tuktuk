@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { C } from '../data';
 import { commentCount, currentPost } from '../state';
 import type { ScreenProps } from '../types';
@@ -7,10 +7,52 @@ import Avatar from '../components/Avatar';
 const WHEEL_THROTTLE_MS = 500;
 const SWIPE_MIN_PX = 50;
 
+type FeedVideoProps = {
+  src: string;
+  playing: boolean;
+  muted: boolean;
+  onProgress: (pct: number) => void;
+  onEnded: () => void;
+  onBlocked: () => void;
+};
+
+function FeedVideo({ src, playing, muted, onProgress, onEnded, onBlocked }: FeedVideoProps) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    v.muted = muted;
+    if (!playing) return v.pause();
+    // Browser blockieren Autoplay mit Ton oft – dann stumm weiterspielen
+    v.play().catch(() => {
+      if (v.muted) return;
+      onBlocked();
+    });
+  }, [playing, muted, onBlocked]);
+
+  return (
+    <video
+      ref={ref}
+      className="feed-video"
+      src={src}
+      playsInline
+      preload="auto"
+      onTimeUpdate={(e) => {
+        const v = e.currentTarget;
+        if (v.duration) onProgress((v.currentTime / v.duration) * 100);
+      }}
+      onEnded={onEnded}
+    />
+  );
+}
+
 export default function Feed({ s, dispatch }: ScreenProps) {
   const p = currentPost(s);
   const liked = !!s.liked[p.id];
   const saved = !!s.saved[p.id];
+  const [muted, setMuted] = useState(false);
+  const muteOnBlock = useCallback(() => setMuted(true), []);
   const lastWheel = useRef(0);
   const touchY = useRef<number | null>(null);
 
@@ -47,11 +89,24 @@ export default function Feed({ s, dispatch }: ScreenProps) {
       onTouchEnd={onTouchEnd}
     >
       <div className="fill" style={{ background: p.bg }} />
-      <div className="fill stripes" onClick={() => dispatch({ type: 'togglePause' })} />
+      {p.video ? (
+        <FeedVideo key={p.id} src={p.video} playing={!s.paused && !s.sheet} muted={muted}
+          onProgress={(v) => dispatch({ type: 'setProg', value: v })}
+          onEnded={() => dispatch({ type: 'next' })}
+          onBlocked={muteOnBlock} />
+      ) : (
+        <div className="fill stripes" />
+      )}
+      <div className="fill" onClick={() => dispatch({ type: 'togglePause' })} />
       <div className="video-label">
-        [ Video · {p.len} s · {p.scene} ]
+        {!p.video && <>[ Video · {p.len} s · {p.scene} ]</>}
         <div className="pause-icon" style={{ opacity: s.paused ? 0.9 : 0 }}>❚❚</div>
       </div>
+      {p.video && (
+        <button className="mute" onClick={() => setMuted((m) => !m)} aria-label={muted ? 'Ton an' : 'Ton aus'}>
+          {muted ? '🔇' : '🔊'}
+        </button>
+      )}
       <div className="shade-top" />
       <div className="shade-bottom" />
 

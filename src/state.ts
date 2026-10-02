@@ -1,4 +1,4 @@
-import { BASE_COMMENTS, C, ME, POSTS, type Comment, type Post } from './data';
+import { BASE_COMMENTS, C, ME, POSTS, type Comment, type Media, type Post } from './data';
 
 export type Tab = 'feed' | 'fam' | 'rec' | 'post' | 'profil';
 export type Sheet = '' | 'comments' | 'share' | 'invite';
@@ -19,6 +19,8 @@ export type State = {
   secs: number;
   maxLen: number;
   lastLen: number;
+  /** Zuletzt aufgenommener oder hochgeladener Clip, der gepostet werden kann. */
+  media: Media | null;
   draft: string;
   aud: number;
   posted: Post[];
@@ -40,6 +42,7 @@ export const initialState: State = {
   secs: 0,
   maxLen: 40,
   lastLen: 0,
+  media: null,
   draft: '',
   aud: 0,
   posted: [],
@@ -60,7 +63,9 @@ export type Action =
   | { type: 'toggleShare'; name: string }
   | { type: 'copyInvite' }
   | { type: 'toggleRec' }
-  | { type: 'upload' }
+  | { type: 'setProg'; value: number }
+  | { type: 'setMedia'; media: Media }
+  | { type: 'upload'; media: Media; secs: number }
   | { type: 'setDraft'; value: string }
   | { type: 'setAud'; value: number }
   | { type: 'publish' };
@@ -97,7 +102,8 @@ export function reducer(s: State, a: Action): State {
         const n = s.secs + TICK_MS / 1000;
         return n >= s.maxLen ? stopRec(s, s.maxLen) : { ...s, secs: n };
       }
-      if (s.tab === 'feed' && !s.paused && !s.sheet) {
+      // Echte Videos treiben den Fortschritt selbst (siehe setProg)
+      if (s.tab === 'feed' && !s.paused && !s.sheet && !currentPost(s).video) {
         const n = s.prog + 100 / (currentPost(s).len * (1000 / TICK_MS));
         return n >= 100 ? reducer(s, { type: 'next' }) : { ...s, prog: n };
       }
@@ -132,9 +138,13 @@ export function reducer(s: State, a: Action): State {
     case 'copyInvite':
       return { ...s, copied: true };
     case 'toggleRec':
-      return s.rec ? stopRec(s, Math.max(1, s.secs)) : { ...s, rec: true, secs: 0 };
+      return s.rec ? stopRec(s, Math.max(1, s.secs)) : { ...s, rec: true, secs: 0, media: null };
+    case 'setProg':
+      return { ...s, prog: a.value };
+    case 'setMedia':
+      return { ...s, media: a.media };
     case 'upload':
-      return { ...s, lastLen: 27, tab: 'post' };
+      return { ...s, media: a.media, lastLen: Math.max(1, Math.round(a.secs)), tab: 'post' };
     case 'setDraft':
       return { ...s, draft: a.value };
     case 'setAud':
@@ -143,9 +153,9 @@ export function reducer(s: State, a: Action): State {
       const np: Post = {
         id: 'n' + Date.now(), fam: true, name: ME.name, ini: ME.ini, role: 'Du', bg: C.sky, avc: ME.color,
         len: s.lastLen || 10, scene: 'Dein neuer Clip', caption: s.draft || 'Neuer Clip',
-        sound: 'Originalton · ' + ME.name, likes: 0, cc: 0,
+        sound: 'Originalton · ' + ME.name, likes: 0, cc: 0, video: s.media?.url,
       };
-      return { ...s, posted: [np, ...s.posted], draft: '', idx: 0, prog: 0, tab: 'feed' };
+      return { ...s, posted: [np, ...s.posted], media: null, draft: '', idx: 0, prog: 0, tab: 'feed' };
     }
   }
 }

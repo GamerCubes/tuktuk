@@ -17,7 +17,10 @@ export default function Compose({ s, dispatch }: ScreenProps) {
       </div>
 
       <div className="compose-row">
-        <div className="compose-thumb">0:{String(s.lastLen).padStart(2, '0')}</div>
+        <div className="compose-thumb">
+          {s.media && <video src={s.media.url} autoPlay loop muted playsInline />}
+          <span>0:{String(s.lastLen).padStart(2, '0')}</span>
+        </div>
         <textarea
           className="compose-text"
           value={s.draft}
