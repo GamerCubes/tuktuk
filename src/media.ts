@@ -28,6 +28,15 @@ function cameraErrorText(err: unknown): string {
   return 'Kamera konnte nicht gestartet werden.';
 }
 
+/** Setzt einen vom Gerät gemerkten Kamera-Zoom auf den kleinsten Wert (voller Bildausschnitt). */
+function resetZoom(ms: MediaStream) {
+  const track = ms.getVideoTracks()[0];
+  // zoom fehlt noch in den TS-DOM-Typen, wird aber von Chrome auf Android unterstützt
+  const zoom = (track?.getCapabilities?.() as { zoom?: { min: number } } | undefined)?.zoom;
+  if (!zoom) return;
+  track.applyConstraints({ advanced: [{ zoom: zoom.min } as MediaTrackConstraintSet] }).catch(() => {});
+}
+
 /** Öffnet Kamera und Mikrofon und gibt sie beim Verlassen oder Kamerawechsel wieder frei. */
 export function useCamera(facing: Facing) {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -42,11 +51,15 @@ export function useCamera(facing: Facing) {
     let opened: MediaStream | null = null;
     navigator.mediaDevices
       .getUserMedia({
-        video: { facingMode: facing, width: { ideal: 1080 }, height: { ideal: 1920 } },
+        // Maße in Sensor-Ausrichtung (quer) anfragen: Ein Hochformat-Wunsch zwingt den Browser,
+        // einen schmalen Streifen aus dem Sensorbild zu schneiden – das wirkt wie starker Zoom.
+        // Gedreht wird das Bild auf dem Handy trotzdem automatisch.
+        video: { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: true,
       })
       .then((ms) => {
         if (!active) return ms.getTracks().forEach((t) => t.stop());
+        resetZoom(ms);
         opened = ms;
         setStream(ms);
         setError('');
