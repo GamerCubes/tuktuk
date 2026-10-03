@@ -95,3 +95,18 @@ export function ProfileSheet({ s, dispatch }: ScreenProps) {
     </form>
   );
 }
+
+export function DeleteSheet({ dispatch }: ScreenProps) {
+  return (
+    <div className="sheet" role="alertdialog" aria-label="Clip löschen">
+      <h2 className="display" style={{ fontSize: 22 }}>Clip löschen?</h2>
+      <div className="muted" style={{ marginTop: 12, fontSize: 14, lineHeight: 1.45 }}>
+        Der Clip verschwindet mit seinen Herzen und Kommentaren von diesem Gerät. Das lässt sich nicht rückgängig machen.
+      </div>
+      <button className="pill pill-danger pill-block" style={{ marginTop: 18 }} onClick={() => dispatch({ type: 'deletePost' })}>
+        Löschen
+      </button>
+      <button className="plain sheet-text-btn" onClick={() => dispatch({ type: 'closeSheet' })}>Abbrechen</button>
+    </div>
+  );
+}

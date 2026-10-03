@@ -1,9 +1,24 @@
+import { useEffect, useRef } from 'react';
 import { C, ME_COLOR, displayName, familyTitle, initialOf } from '../data';
 import type { ScreenProps } from '../types';
 import Avatar from '../components/Avatar';
 
+const HOLD_MS = 500;
+
 export default function Profile({ s, dispatch }: ScreenProps) {
   const hearts = s.posted.filter((p) => s.liked[p.id]).length + s.posted.reduce((n, p) => n + p.likes, 0);
+
+  // Gedrückthalten eines Clips öffnet die Lösch-Rückfrage; Loslassen oder Scrollen bricht ab
+  const hold = useRef<number>(undefined);
+  const cancelHold = () => clearTimeout(hold.current);
+  useEffect(() => cancelHold, []);
+  const startHold = (id: string) => {
+    cancelHold();
+    hold.current = window.setTimeout(() => {
+      navigator.vibrate?.(15);
+      dispatch({ type: 'askDelete', id });
+    }, HOLD_MS);
+  };
 
   return (
     <div className="screen light scroll" style={{ paddingLeft: 18, paddingRight: 18 }}>
@@ -39,7 +54,16 @@ export default function Profile({ s, dispatch }: ScreenProps) {
       ) : (
         <div className="clip-grid">
           {s.posted.map((p) => (
-            <div key={p.id} className={'clip' + (p.video ? '' : ' clip-stripes')} style={{ background: C.blue }}>
+            <div
+              key={p.id}
+              className={'clip' + (p.video ? '' : ' clip-stripes')}
+              style={{ background: C.blue }}
+              onPointerDown={() => startHold(p.id)}
+              onPointerUp={cancelHold}
+              onPointerLeave={cancelHold}
+              onPointerCancel={cancelHold}
+              onContextMenu={(e) => e.preventDefault()}
+            >
               {/* #t=0.1 lässt iOS ein Standbild als Vorschau zeigen */}
               {p.video && <video src={p.video + '#t=0.1'} muted playsInline preload="metadata" />}
               <span>▶ {p.likes + (s.liked[p.id] ? 1 : 0)}</span>

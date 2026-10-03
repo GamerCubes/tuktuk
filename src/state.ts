@@ -2,7 +2,7 @@ import { C, ME_COLOR, displayName, initialOf, type Comment, type Media, type Pos
 import type { Restored } from './storage';
 
 export type Tab = 'feed' | 'fam' | 'rec' | 'post' | 'profil';
-export type Sheet = '' | 'comments' | 'share' | 'invite' | 'profile';
+export type Sheet = '' | 'comments' | 'share' | 'invite' | 'profile' | 'delete';
 
 export type State = {
   /** true, sobald gespeicherte Inhalte vom Gerät geladen sind */
@@ -14,6 +14,8 @@ export type State = {
   liked: Record<string, boolean>;
   saved: Record<string, boolean>;
   sheet: Sheet;
+  /** Clip, für den die Lösch-Rückfrage offen ist */
+  delId: string;
   comments: Record<string, Comment[]>;
   cDraft: string;
   profile: Profile;
@@ -37,6 +39,7 @@ export const initialState: State = {
   liked: {},
   saved: {},
   sheet: '',
+  delId: '',
   comments: {},
   cDraft: '',
   profile: { name: '', family: '' },
@@ -70,7 +73,9 @@ export type Action =
   | { type: 'upload'; media: Media; secs: number }
   | { type: 'setDraft'; value: string }
   | { type: 'setAud'; value: number }
-  | { type: 'publish' };
+  | { type: 'publish' }
+  | { type: 'askDelete'; id: string }
+  | { type: 'deletePost' };
 
 export const TICK_MS = 100;
 
@@ -156,6 +161,16 @@ export function reducer(s: State, a: Action): State {
         sound: 'Originalton · ' + name, likes: 0, cc: 0, video: s.media?.url,
       };
       return { ...s, posted: [np, ...s.posted], media: null, draft: '', idx: 0, prog: 0, tab: 'feed' };
+    }
+    case 'askDelete':
+      return { ...s, sheet: 'delete', delId: a.id };
+    case 'deletePost': {
+      // Herzen, Merker und Kommentare des Clips gehen mit
+      const id = s.delId;
+      const { [id]: _l, ...liked } = s.liked;
+      const { [id]: _s, ...saved } = s.saved;
+      const { [id]: _c, ...comments } = s.comments;
+      return { ...s, posted: s.posted.filter((p) => p.id !== id), liked, saved, comments, sheet: '', delId: '', idx: 0, prog: 0 };
     }
   }
 }

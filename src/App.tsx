@@ -7,7 +7,7 @@ import Recorder from './screens/Recorder';
 import Compose from './screens/Compose';
 import Profile from './screens/Profile';
 import NavBar from './components/NavBar';
-import { CommentsSheet, InviteSheet, ProfileSheet, ShareSheet } from './components/Sheets';
+import { CommentsSheet, DeleteSheet, InviteSheet, ProfileSheet, ShareSheet } from './components/Sheets';
 
 export default function App() {
   const [s, dispatch] = useReducer(reducer, initialState);
@@ -55,6 +55,7 @@ export default function App() {
             {s.sheet === 'share' && <ShareSheet {...props} />}
             {s.sheet === 'invite' && <InviteSheet {...props} />}
             {s.sheet === 'profile' && <ProfileSheet {...props} />}
+            {s.sheet === 'delete' && <DeleteSheet {...props} />}
           </>
         )}
       </div>
