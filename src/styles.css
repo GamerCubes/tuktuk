@@ -9,6 +9,7 @@
   --cream: #F7F3E6;
   --sky: #B1D5F0;
   --gray: #5E6064;
+  --red: #c2261b;
   --display: Barnum, Georgia, serif;
   --mono: ui-monospace, Menlo, monospace;
 }
@@ -64,7 +65,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .pill-ink { background: var(--ink); color: var(--cream); padding: 8px 16px; font-size: 13px; margin-top: 10px; }
 .pill-outline { border: 2px solid var(--blue); color: var(--blue); }
 .pill-sm { font-size: 13px; padding: 5px 12px; }
-.pill-danger { background: #c2261b; color: #fff; border: 2px solid var(--ink); }
+.pill-danger { background: var(--red); color: #fff; border: 2px solid var(--ink); }
 .pill-block { display: block; width: 100%; padding: 12px; font-size: 15px; }
 
 /* Feed */
