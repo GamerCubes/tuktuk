@@ -64,6 +64,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .pill-ink { background: var(--ink); color: var(--cream); padding: 8px 16px; font-size: 13px; margin-top: 10px; }
 .pill-outline { border: 2px solid var(--blue); color: var(--blue); }
 .pill-sm { font-size: 13px; padding: 5px 12px; }
+.pill-danger { background: #c2261b; color: #fff; border: 2px solid var(--ink); }
 .pill-block { display: block; width: 100%; padding: 12px; font-size: 15px; }
 
 /* Feed */
@@ -172,9 +173,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .profile-tabs > div { flex: 1; text-align: center; padding: 8px; color: var(--gray); }
 .profile-tabs > .active { color: var(--blue); border-bottom: 3px solid var(--blue); }
 .clip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 8px; padding-bottom: 100px; }
-.clip { aspect-ratio: 9 / 14; border-radius: 6px; position: relative; overflow: hidden; }
+.clip { aspect-ratio: 9 / 14; border-radius: 6px; position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .clip-stripes { background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .14) 0 8px, transparent 8px 16px) !important; }
-.clip video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.clip video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 .clip span { position: absolute; left: 6px; bottom: 6px; color: #fff; font-size: 11px; font-weight: 700; text-shadow: 0 1px 2px #0008; }
 
 /* Navigation */

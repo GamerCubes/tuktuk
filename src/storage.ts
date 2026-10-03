@@ -61,7 +61,8 @@ export async function loadState(): Promise<Restored | null> {
   return { profile: snap.profile, posted, liked: snap.liked, saved: snap.saved, comments: snap.comments };
 }
 
-const storedVideos = new Set<string>();
+/** Gespeicherte Videos: Clip-ID → Object-URL */
+const storedVideos = new Map<string, string>();
 
 export async function saveState(s: State): Promise<void> {
   // Neue Videos einmalig als Blob ablegen (die Object-URL lässt sich direkt wieder einlesen)
@@ -69,7 +70,7 @@ export async function saveState(s: State): Promise<void> {
     if (!p.video || storedVideos.has(p.id)) continue;
     const blob = await fetch(p.video).then((r) => r.blob());
     await run(VIDEOS, 'readwrite', (st) => st.put(blob, p.id));
-    storedVideos.add(p.id);
+    storedVideos.set(p.id, p.video);
   }
   const snap: Snapshot = {
     profile: s.profile,
@@ -79,10 +80,19 @@ export async function saveState(s: State): Promise<void> {
     comments: s.comments,
   };
   await run(KV, 'readwrite', (st) => st.put(snap, SNAPSHOT_KEY));
+
+  // Videos gelöschter Clips erst entfernen, wenn der Snapshot ohne sie gespeichert ist
+  const ids = new Set(s.posted.map((p) => p.id));
+  for (const [id, url] of storedVideos) {
+    if (ids.has(id)) continue;
+    await run(VIDEOS, 'readwrite', (st) => st.delete(id));
+    storedVideos.delete(id);
+    URL.revokeObjectURL(url);
+  }
 }
 
 export function markVideosStored(posts: Post[]) {
-  for (const p of posts) if (p.video) storedVideos.add(p.id);
+  for (const p of posts) if (p.video) storedVideos.set(p.id, p.video);
 }
 
 /** Bittet den Browser, die Daten nicht bei Speicherknappheit zu löschen. */
