@@ -3,5 +3,7 @@ dist
 *.local
 .DS_Store
 *.tsbuildinfo
-.claude/
+.claude/worktrees/
+.claude/settings.local.json
+.claude/launch.json
 .vite/
