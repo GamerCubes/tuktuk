@@ -15,9 +15,13 @@
 }
 
 * { box-sizing: border-box; }
+html { -webkit-tap-highlight-color: transparent; } /* keine blaue Tipp-Markierung (Android), vererbt sich (#10) */
 body { margin: 0; background: #2a2a2c; font-family: RobotoF, Roboto, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 h1, h2 { margin: 0; font-weight: 700; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+/* Tipp-Feedback statt Browser-Blau: Buttons und Clip-Vorschauen drücken sich kurz ein (#10) */
+button, .clip { transition: transform .1s; }
+button:active:not(:disabled), .clip:active { transform: scale(.95); }
 ::-webkit-scrollbar { display: none; }
 
 /* Rahmen */
@@ -233,6 +237,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 @keyframes rise { from { transform: translateY(100%); } }
 @keyframes fade { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .sheet, .backdrop { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sheet, .backdrop { animation: none; } button, .clip { transition: none; } }
 
 :focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
