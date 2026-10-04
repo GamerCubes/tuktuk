@@ -23,6 +23,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* Rahmen */
 .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
 .phone {
+  -webkit-touch-callout: none; /* kein Bild-/Link-Menü bei langem Drücken (iOS) */
   position: relative; width: 390px; height: 844px; border-radius: 44px; overflow: hidden;
   background: var(--ink); color: var(--cream);
   box-shadow: 0 0 0 10px #111, 0 30px 80px rgba(0, 0, 0, .5);
