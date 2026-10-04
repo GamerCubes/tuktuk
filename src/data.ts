@@ -23,7 +23,9 @@ export type Comment = { who: string; i: string; c: string; text: string; l: numb
 
 export type Profile = { name: string; family: string };
 
-/** Grundfarben für Inline-Styles – die Werte selbst stehen nur in styles.css (:root, #17). */
+/** Grundfarben für Inline-Styles – die Werte selbst stehen nur in styles.css (:root, #17).
+ *  ME_COLOR und C.sky landen in gespeicherten Kommentaren/Clips (IndexedDB): Token-Namen nicht umbenennen.
+ *  Ältere Einträge enthalten noch Hex-Werte und bleiben gültig. */
 export const C = {
   blue: 'var(--blue)',
   orange: 'var(--orange)',

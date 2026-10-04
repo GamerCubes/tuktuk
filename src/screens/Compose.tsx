@@ -1,4 +1,4 @@
-import { AUDIENCES } from '../data';
+import { AUDIENCES, C } from '../data';
 import type { ScreenProps } from '../types';
 
 const SETTINGS: [label: string, on: boolean][] = [
@@ -49,7 +49,7 @@ export default function Compose({ s, dispatch }: ScreenProps) {
         {SETTINGS.map(([label, on]) => (
           <div key={label} className="row-between">
             <span>{label}</span>
-            <b style={{ color: on ? 'var(--blue)' : 'var(--gray)' }}>{on ? 'An' : 'Aus'}</b>
+            <b style={{ color: on ? C.blue : C.gray }}>{on ? 'An' : 'Aus'}</b>
           </div>
         ))}
       </div>
