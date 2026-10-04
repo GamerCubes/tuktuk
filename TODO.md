@@ -9,6 +9,8 @@
 - 04.10.2026 – Wird ein Clip gelöscht, während sein Vorschaubild noch entsteht, bleibt eine kleine Object-URL bis zum Schließen im Speicher (#13, Review). Vernachlässigbar.
 - 04.10.2026 – Vorschaubilder, deren Erzeugen fehlschlägt, werden bei jedem Start erneut versucht (bis 8 s pro Clip). Bewusst so; beobachten.
 
+- 04.10.2026 – Eigene Farbe (`ME_COLOR`) und Clip-Hintergrund werden in jedem Kommentar/Clip mitgespeichert (seit #17 als `var(--orange)`/`var(--sky)`, ältere als Hex). Sauberer wäre, die eigene Farbe beim Anzeigen abzuleiten statt zu speichern – erst relevant, wenn Teilen zwischen Geräten kommt.
+
 ## Erledigt
 - 04.10.2026 – Farben/Maße als Tokens: als Chore-Karte #17 aufs Board (Option).
 - 03.10.2026 – Board, `CLAUDE.md`, Phasen-Commands, `HANDOFF.md`, `TODO.md` angelegt.
