@@ -23,14 +23,15 @@ export type Comment = { who: string; i: string; c: string; text: string; l: numb
 
 export type Profile = { name: string; family: string };
 
+/** Grundfarben für Inline-Styles – die Werte selbst stehen nur in styles.css (:root, #17). */
 export const C = {
-  blue: '#1A1AA7',
-  orange: '#FFA142',
-  ink: '#181819',
-  cream: '#F7F3E6',
-  sky: '#B1D5F0',
-  gray: '#5E6064',
-  red: '#c2261b',
+  blue: 'var(--blue)',
+  orange: 'var(--orange)',
+  ink: 'var(--ink)',
+  cream: 'var(--cream)',
+  sky: 'var(--sky)',
+  gray: 'var(--gray)',
+  red: 'var(--red)',
 } as const;
 
 export const ME_COLOR = C.orange;

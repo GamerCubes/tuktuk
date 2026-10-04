@@ -136,8 +136,7 @@ function FeedPlayer({ s, dispatch }: ScreenProps) {
           <svg width="38" height="38" viewBox="0 0 24 24">
             <path
               d="M12 21C5 15.5 2.5 12 2.5 8.6 2.5 6 4.5 4 7 4c2 0 3.8 1.1 5 3 1.2-1.9 3-3 5-3 2.5 0 4.5 2 4.5 4.6C21.5 12 19 15.5 12 21z"
-              fill={liked ? C.orange : 'none'}
-              stroke={liked ? C.orange : C.cream}
+              style={{ fill: liked ? C.orange : 'none', stroke: liked ? C.orange : C.cream }}
               strokeWidth="1.5"
             />
           </svg>
@@ -146,24 +145,24 @@ function FeedPlayer({ s, dispatch }: ScreenProps) {
 
         <button className="action" onClick={() => dispatch({ type: 'openSheet', sheet: 'comments' })} aria-label="Kommentare">
           <svg width="36" height="36" viewBox="0 0 24 24">
-            <path d="M4 4h16a1 1 0 011 1v11a1 1 0 01-1 1H10l-5 4v-4H4a1 1 0 01-1-1V5a1 1 0 011-1z" fill={C.cream} />
-            <circle cx="8" cy="10.5" r="1.3" fill={C.ink} />
-            <circle cx="12" cy="10.5" r="1.3" fill={C.ink} />
-            <circle cx="16" cy="10.5" r="1.3" fill={C.ink} />
+            <path d="M4 4h16a1 1 0 011 1v11a1 1 0 01-1 1H10l-5 4v-4H4a1 1 0 01-1-1V5a1 1 0 011-1z" style={{ fill: C.cream }} />
+            <circle cx="8" cy="10.5" r="1.3" style={{ fill: C.ink }} />
+            <circle cx="12" cy="10.5" r="1.3" style={{ fill: C.ink }} />
+            <circle cx="16" cy="10.5" r="1.3" style={{ fill: C.ink }} />
           </svg>
           <span>{commentCount(s, p)}</span>
         </button>
 
         <button className="action" onClick={() => dispatch({ type: 'toggleSave', id: p.id })} aria-pressed={saved}>
           <svg width="32" height="32" viewBox="0 0 24 24">
-            <path d="M6 3h12v18l-6-4.5L6 21z" fill={saved ? C.orange : 'none'} stroke={C.cream} strokeWidth="1.5" />
+            <path d="M6 3h12v18l-6-4.5L6 21z" style={{ fill: saved ? C.orange : 'none', stroke: C.cream }} strokeWidth="1.5" />
           </svg>
           <span>{saved ? 'Gemerkt' : 'Merken'}</span>
         </button>
 
         <button className="action" onClick={() => dispatch({ type: 'openSheet', sheet: 'share' })}>
           <svg width="32" height="32" viewBox="0 0 24 24">
-            <path d="M21 3L3 10.5l7 2.5 2.5 7z" fill={C.cream} />
+            <path d="M21 3L3 10.5l7 2.5 2.5 7z" style={{ fill: C.cream }} />
           </svg>
           <span>Teilen</span>
         </button>
