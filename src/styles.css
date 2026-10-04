@@ -4,7 +4,9 @@
 
 :root {
   /* Grundfarben (#17): jede Farbe der App steht nur hier. Wo eine Farbe auch halbdurchsichtig
-     gebraucht wird, liegt sie als RGB-Kanäle vor: rgb(var(--ink-rgb) / .8) = Tinte zu 80 %. */
+     gebraucht wird, liegt sie als RGB-Kanäle vor: rgb(var(--ink-rgb) / .8) = Tinte zu 80 %.
+     Ausnahme: theme-color/background_color in index.html und manifest.webmanifest können keine
+     Variablen lesen – ändert sich --ink, dort mitziehen. */
   --blue-rgb: 26 26 167;
   --ink-rgb: 24 24 25;
   --white-rgb: 255 255 255;
