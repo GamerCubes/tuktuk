@@ -7,7 +7,7 @@
 - Funktionsumfang: Feed, Aufnahme mit echter Kamera (720p), Upload, Posten, Likes, Kommentare, Profil, Clips löschen per Gedrückthalten. Alles lokal auf dem Gerät (IndexedDB), kein Backend.
 - Board-Ablauf siehe `CLAUDE.md`, Board = GitHub Project „TukTuk" #6 (Owner Thommy169).
 
-- **#13 „Absturz beim Gedrückthalten eines Clips im Profil" ist live (PR #14), Karte in *PO Review*.** Auf dem älteren Android-Handy des Sohnes stürzte Chrome beim Gedrückthalten im Profil ab, weil jede Kachel ein volles Video lud. Jetzt: JPEG-Vorschaubilder (Store `thumbs`, **IndexedDB-Version 2**, alte Clips bekommen ihr Bild nach dem ersten Start), kurzes Antippen öffnet den Clip im Feed, Aufnahme in 1280×720. Ladefehler sperren das Speichern (Hinweis statt leerer App). Bug ohne Design-Phase umgesetzt (PO-Entscheidung).
+- **#13 „Absturz beim Gedrückthalten eines Clips im Profil" ist live (PR #14), Karte in *PO Review*.** Auf dem älteren Android-Handy des Sohnes stürzte Chrome beim Gedrückthalten im Profil ab, weil jede Kachel ein volles Video lud. Jetzt: JPEG-Vorschaubilder (Store `thumbs`, **IndexedDB-Version 2**, alte Clips bekommen ihr Bild nach dem ersten Start), kurzes Antippen öffnet den Clip im Feed, Aufnahme in 1280×720. Ladefehler sperren das Speichern (Hinweis statt leerer App). Bug ohne Design-Phase umgesetzt (PO-Entscheidung). Erste Abnahme: Absturz behoben, Löschen klappt; auf dem Gerät des Sohnes erschien aber zusätzlich das Browser-Seitenmenü → Korrektur PR #15 (globaler contextmenu-Blocker außer in Textfeldern), wieder in *PO Review*.
 - **#8 „Aufgenommene Videos löschen"** (PR #12) steht weiter in *PO Review*: Auf dem Gerät des PO klappt es; auf dem Gerät des Sohnes war es wegen #13 nicht testbar.
 
 ## Nächster Schritt
