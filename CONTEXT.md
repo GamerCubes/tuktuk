@@ -7,3 +7,4 @@ Gemeinsame Sprache zwischen PO und Entwicklung. Kurz halten, nur Begriffe, die s
 - **Tastatur-Markierung** – der Rahmen um ein Element, wenn man am Computer mit der Tab-Taste durchspringt. Bleibt erhalten, erscheint nie beim Klicken oder Tippen.
 - **Wischen** – Finger auf dem Feed-Video nach oben ziehen = nächster Clip, nach unten = vorheriger. Einziger sichtbarer Weg zum Blättern; die Pfeil-Knöpfe ↑ ↓ entfallen (#9).
 - **Knopf-Spalte** – die Knöpfe rechts im Feed (Profilbild, Herz, Kommentare, Merken, Teilen).
+- **Grundfarben (Farb-Tokens)** – die festen App-Farben Blau, Orange, Tinte, Creme, Himmelblau, Grau, Rot. Sie stehen an genau einer Stelle (`src/styles.css`, Abschnitt `:root`); jede andere Farbe in der App leitet sich davon ab (#17).
