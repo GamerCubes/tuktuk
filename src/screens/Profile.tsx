@@ -8,16 +8,24 @@ const HOLD_MS = 500;
 export default function Profile({ s, dispatch }: ScreenProps) {
   const hearts = s.posted.filter((p) => s.liked[p.id]).length + s.posted.reduce((n, p) => n + p.likes, 0);
 
-  // Gedrückthalten eines Clips öffnet die Lösch-Rückfrage; Loslassen oder Scrollen bricht ab
+  // Gedrückthalten eines Clips öffnet die Lösch-Rückfrage; Loslassen oder Scrollen bricht ab.
+  // Kurzes Antippen öffnet den Clip im Feed – aber nicht, wenn gerade gehalten wurde.
   const hold = useRef<number>(undefined);
+  const held = useRef(false);
   const cancelHold = () => clearTimeout(hold.current);
   useEffect(() => cancelHold, []);
   const startHold = (id: string) => {
     cancelHold();
+    held.current = false;
     hold.current = window.setTimeout(() => {
+      held.current = true;
       navigator.vibrate?.(15);
       dispatch({ type: 'askDelete', id });
     }, HOLD_MS);
+  };
+  const tap = (id: string) => {
+    if (held.current) return;
+    dispatch({ type: 'openClip', id });
   };
 
   return (
@@ -56,16 +64,17 @@ export default function Profile({ s, dispatch }: ScreenProps) {
           {s.posted.map((p) => (
             <div
               key={p.id}
-              className={'clip' + (p.video ? '' : ' clip-stripes')}
+              className={'clip' + (p.thumb ? '' : ' clip-stripes')}
               style={{ background: C.blue }}
               onPointerDown={() => startHold(p.id)}
               onPointerUp={cancelHold}
               onPointerLeave={cancelHold}
               onPointerCancel={cancelHold}
+              onClick={() => tap(p.id)}
               onContextMenu={(e) => e.preventDefault()}
             >
-              {/* #t=0.1 lässt iOS ein Standbild als Vorschau zeigen */}
-              {p.video && <video src={p.video + '#t=0.1'} muted playsInline preload="metadata" />}
+              {/* Nur ein kleines Bild statt des ganzen Videos – sonst stürzen ältere Geräte ab (#13) */}
+              {p.thumb && <img src={p.thumb} alt="" draggable={false} />}
               <span>▶ {p.likes + (s.liked[p.id] ? 1 : 0)}</span>
             </div>
           ))}

@@ -7,6 +7,8 @@ export type Sheet = '' | 'comments' | 'share' | 'invite' | 'profile' | 'delete';
 export type State = {
   /** true, sobald gespeicherte Inhalte vom Gerät geladen sind */
   loaded: boolean;
+  /** Laden ist fehlgeschlagen – dann wird nichts gespeichert, um die Gerätedaten nicht zu überschreiben */
+  loadError: boolean;
   tab: Tab;
   idx: number;
   prog: number;
@@ -32,6 +34,7 @@ export type State = {
 
 export const initialState: State = {
   loaded: false,
+  loadError: false,
   tab: 'feed',
   idx: 0,
   prog: 0,
@@ -56,6 +59,7 @@ export const initialState: State = {
 export type Action =
   | { type: 'tick' }
   | { type: 'hydrate'; data: Restored | null }
+  | { type: 'loadFailed' }
   | { type: 'go'; tab: Tab }
   | { type: 'next' }
   | { type: 'prev' }
@@ -74,6 +78,8 @@ export type Action =
   | { type: 'setDraft'; value: string }
   | { type: 'setAud'; value: number }
   | { type: 'publish' }
+  | { type: 'setThumb'; id: string; url: string }
+  | { type: 'openClip'; id: string }
   | { type: 'askDelete'; id: string }
   | { type: 'deletePost' };
 
@@ -115,6 +121,8 @@ export function reducer(s: State, a: Action): State {
     }
     case 'hydrate':
       return { ...s, ...(a.data ?? {}), loaded: true };
+    case 'loadFailed':
+      return { ...s, loadError: true };
     case 'go':
       return { ...s, tab: a.tab, sheet: '', paused: false, rec: false, secs: 0, prog: a.tab === 'feed' ? s.prog : 0 };
     case 'next':
@@ -161,6 +169,12 @@ export function reducer(s: State, a: Action): State {
         sound: 'Originalton · ' + name, likes: 0, cc: 0, video: s.media?.url,
       };
       return { ...s, posted: [np, ...s.posted], media: null, draft: '', idx: 0, prog: 0, tab: 'feed' };
+    }
+    case 'setThumb':
+      return { ...s, posted: s.posted.map((p) => (p.id === a.id ? { ...p, thumb: a.url } : p)) };
+    case 'openClip': {
+      const idx = s.posted.findIndex((p) => p.id === a.id);
+      return idx < 0 ? s : { ...s, tab: 'feed', idx, prog: 0, paused: false, sheet: '' };
     }
     case 'askDelete':
       return { ...s, sheet: 'delete', delId: a.id };

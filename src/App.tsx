@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef } from 'react';
 import { initialState, reducer, TICK_MS } from './state';
 import { loadState, markVideosStored, requestPersistence, saveState } from './storage';
+import { makeThumbnail } from './media';
 import Feed from './screens/Feed';
 import Family from './screens/Family';
 import Recorder from './screens/Recorder';
@@ -12,6 +13,8 @@ import { CommentsSheet, DeleteSheet, InviteSheet, ProfileSheet, ShareSheet } fro
 export default function App() {
   const [s, dispatch] = useReducer(reducer, initialState);
   const saving = useRef(Promise.resolve());
+  const thumbing = useRef(new Set<string>());
+  const thumbBusy = useRef(false);
 
   useEffect(() => {
     const t = setInterval(() => dispatch({ type: 'tick' }), TICK_MS);
@@ -25,7 +28,7 @@ export default function App() {
         if (data) markVideosStored(data.posted);
         dispatch({ type: 'hydrate', data });
       })
-      .catch(() => dispatch({ type: 'hydrate', data: null }));
+      .catch(() => dispatch({ type: 'loadFailed' }));
   }, []);
 
   // Erst nach dem Laden speichern, sonst würde der leere Startzustand die gespeicherten Daten überschreiben.
@@ -35,12 +38,33 @@ export default function App() {
     saving.current = saving.current.then(() => saveState(s)).catch(() => {});
   }, [s.loaded, s.profile, s.posted, s.liked, s.saved, s.comments]);
 
+  // Fehlende Vorschaubilder nacheinander erzeugen – auch für Clips von vor #13.
+  // Immer nur ein Video zur Zeit, damit schwache Geräte nicht überlastet werden.
+  // Fehlgeschlagene Versuche (thumb '') werden nicht gespeichert und beim nächsten Start erneut versucht.
+  useEffect(() => {
+    if (!s.loaded || thumbBusy.current) return;
+    const p = s.posted.find((x) => x.video && x.thumb === undefined && !thumbing.current.has(x.id));
+    if (!p?.video) return;
+    thumbing.current.add(p.id);
+    thumbBusy.current = true;
+    makeThumbnail(p.video).then((blob) => {
+      thumbBusy.current = false;
+      // setThumb erzeugt immer ein neues posted-Array und stößt so das nächste Vorschaubild an
+      dispatch({ type: 'setThumb', id: p.id, url: blob ? URL.createObjectURL(blob) : '' });
+    });
+  }, [s.loaded, s.posted]);
+
   const props = { s, dispatch };
 
   return (
     <div className="wrap">
       <div className="phone">
-        {!s.loaded ? null : (
+        {s.loadError ? (
+          <div className="screen load-error" role="alert">
+            <h1 className="display">Deine Clips konnten nicht geladen werden</h1>
+            <p>Schließ TukTuk ganz und öffne es neu. Deine gespeicherten Clips bleiben dabei erhalten.</p>
+          </div>
+        ) : !s.loaded ? null : (
           <>
             {s.tab === 'feed' && <Feed {...props} />}
             {s.tab === 'fam' && <Family {...props} />}

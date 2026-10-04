@@ -54,7 +54,8 @@ export function useCamera(facing: Facing) {
         // Maße in Sensor-Ausrichtung (quer) anfragen: Ein Hochformat-Wunsch zwingt den Browser,
         // einen schmalen Streifen aus dem Sensorbild zu schneiden – das wirkt wie starker Zoom.
         // Gedreht wird das Bild auf dem Handy trotzdem automatisch.
-        video: { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        // 720p statt 1080p: spart Arbeitsspeicher und Platz auf älteren Geräten (#13).
+        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: true,
       })
       .then((ms) => {
@@ -73,6 +74,58 @@ export function useCamera(facing: Facing) {
   }, [facing]);
 
   return { stream, error };
+}
+
+/** Bitrate für Aufnahmen – reicht für 720p und hält 40-Sekunden-Clips bei rund 12 MB. */
+export const RECORD_BITS_PER_SECOND = 2_500_000;
+
+const THUMB_WIDTH = 240;
+const THUMB_TIMEOUT_MS = 8000;
+
+/**
+ * Erzeugt ein kleines JPEG-Vorschaubild aus dem ersten Bild eines Videos.
+ * Nutzt ein einzelnes, danach sofort freigegebenes Video-Element – im Profil
+ * liegen so keine vollen Videos mehr im Speicher (#13).
+ */
+export function makeThumbnail(url: string): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const v = document.createElement('video');
+    v.muted = true;
+    v.playsInline = true;
+    v.preload = 'auto';
+    let done = false;
+    const finish = (blob: Blob | null) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      v.pause();
+      v.removeAttribute('src');
+      v.load();
+      resolve(blob);
+    };
+    const timer = setTimeout(() => finish(null), THUMB_TIMEOUT_MS);
+    // Erst auf 0,1 s springen und nach dem Sprung zeichnen: Safari meldet Daten teils,
+    // bevor ein Bild dekodiert ist – das ergäbe ein schwarzes Vorschaubild.
+    v.onloadedmetadata = () => {
+      v.currentTime = 0.1;
+    };
+    v.onseeked = () => {
+      const vw = v.videoWidth;
+      const vh = v.videoHeight;
+      const w = THUMB_WIDTH;
+      const h = Math.round((w * 14) / 9); // Seitenverhältnis der Profil-Kacheln
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx || !vw || !vh) return finish(null);
+      const scale = Math.max(w / vw, h / vh);
+      ctx.drawImage(v, (w - vw * scale) / 2, (h - vh * scale) / 2, vw * scale, vh * scale);
+      canvas.toBlob(finish, 'image/jpeg', 0.75);
+    };
+    v.onerror = () => finish(null);
+    v.src = url;
+  });
 }
 
 /** Liest die Länge einer Videodatei in Sekunden. */

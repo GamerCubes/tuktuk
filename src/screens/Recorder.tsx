@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { pickRecorderMime, useCamera, videoDuration, type Facing } from '../media';
+import { RECORD_BITS_PER_SECOND, pickRecorderMime, useCamera, videoDuration, type Facing } from '../media';
 import type { ScreenProps } from '../types';
 
 const STATIC_TOOLS: [icon: string, label: string][] = [['◐', 'Filter'], ['⏱', 'Timer'], ['✦', 'Effekte']];
@@ -21,7 +21,7 @@ export default function Recorder({ s, dispatch }: ScreenProps) {
     if (s.rec && stream && !recorder.current) {
       const mime = pickRecorderMime();
       const chunks: Blob[] = [];
-      const r = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      const r = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: RECORD_BITS_PER_SECOND });
       r.ondataavailable = (e) => e.data.size && chunks.push(e.data);
       r.onstop = () => {
         const type = r.mimeType || mime || 'video/webm';
