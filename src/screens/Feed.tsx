@@ -167,11 +167,6 @@ function FeedPlayer({ s, dispatch }: ScreenProps) {
           </svg>
           <span>Teilen</span>
         </button>
-
-        <div className="step-buttons">
-          <button className="step" onClick={() => dispatch({ type: 'prev' })} aria-label="Vorheriger Clip">↑</button>
-          <button className="step" onClick={() => dispatch({ type: 'next' })} aria-label="Nächster Clip">↓</button>
-        </div>
       </div>
 
       <div className="feed-meta">
