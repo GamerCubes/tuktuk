@@ -1,16 +1,19 @@
 // Speichert eigene Inhalte dauerhaft auf diesem Gerät (IndexedDB).
-// Videos liegen als Blob in einem eigenen Store, der Rest als ein Snapshot.
+// Videos und Vorschaubilder liegen als Blob in eigenen Stores, der Rest als ein Snapshot.
 import type { Comment, Post, Profile } from './data';
 import type { State } from './state';
 
 const DB_NAME = 'tuktuk';
-const DB_VERSION = 1;
+// v2 (#13): Store „thumbs“ für JPEG-Vorschaubilder. Bestehende Stores bleiben unverändert;
+// Vorschaubilder alter Clips erzeugt die App nach dem Laden nach.
+const DB_VERSION = 2;
 const KV = 'kv';
 const VIDEOS = 'videos';
+const THUMBS = 'thumbs';
 const SNAPSHOT_KEY = 'snapshot';
 
-/** Post ohne Object-URL – die URL gilt nur bis zum Schließen der App. */
-type StoredPost = Omit<Post, 'video'> & { hasVideo: boolean };
+/** Post ohne Object-URLs – sie gelten nur bis zum Schließen der App. hasThumb fehlt bei Einträgen vor v2. */
+type StoredPost = Omit<Post, 'video' | 'thumb'> & { hasVideo: boolean; hasThumb?: boolean };
 
 export type Snapshot = {
   profile: Profile;
@@ -28,8 +31,8 @@ function db(): Promise<IDBDatabase> {
   dbPromise ??= new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
-      req.result.createObjectStore(KV);
-      req.result.createObjectStore(VIDEOS);
+      const d = req.result;
+      for (const name of [KV, VIDEOS, THUMBS]) if (!d.objectStoreNames.contains(name)) d.createObjectStore(name);
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -52,17 +55,25 @@ export async function loadState(): Promise<Restored | null> {
   const snap = await run<Snapshot | undefined>(KV, 'readonly', (s) => s.get(SNAPSHOT_KEY));
   if (!snap) return null;
   const posted = await Promise.all(
-    snap.posted.map(async ({ hasVideo, ...p }): Promise<Post> => {
-      if (!hasVideo) return p;
-      const blob = await run<Blob | undefined>(VIDEOS, 'readonly', (s) => s.get(p.id));
-      return blob ? { ...p, video: URL.createObjectURL(blob) } : p;
+    snap.posted.map(async ({ hasVideo, hasThumb, ...p }): Promise<Post> => {
+      const post: Post = { ...p };
+      if (hasVideo) {
+        const blob = await run<Blob | undefined>(VIDEOS, 'readonly', (s) => s.get(p.id));
+        if (blob) post.video = URL.createObjectURL(blob);
+      }
+      if (hasThumb) {
+        const blob = await run<Blob | undefined>(THUMBS, 'readonly', (s) => s.get(p.id));
+        if (blob) post.thumb = URL.createObjectURL(blob);
+      }
+      return post;
     }),
   );
   return { profile: snap.profile, posted, liked: snap.liked, saved: snap.saved, comments: snap.comments };
 }
 
-/** Gespeicherte Videos: Clip-ID → Object-URL */
+/** Gespeicherte Videos und Vorschaubilder: Clip-ID → Object-URL */
 const storedVideos = new Map<string, string>();
+const storedThumbs = new Map<string, string>();
 
 export async function saveState(s: State): Promise<void> {
   // Neue Videos einmalig als Blob ablegen (die Object-URL lässt sich direkt wieder einlesen)
@@ -72,27 +83,38 @@ export async function saveState(s: State): Promise<void> {
     await run(VIDEOS, 'readwrite', (st) => st.put(blob, p.id));
     storedVideos.set(p.id, p.video);
   }
+  for (const p of s.posted) {
+    if (!p.thumb || storedThumbs.has(p.id)) continue;
+    const blob = await fetch(p.thumb).then((r) => r.blob());
+    await run(THUMBS, 'readwrite', (st) => st.put(blob, p.id));
+    storedThumbs.set(p.id, p.thumb);
+  }
   const snap: Snapshot = {
     profile: s.profile,
-    posted: s.posted.map(({ video, ...p }) => ({ ...p, hasVideo: !!video })),
+    posted: s.posted.map(({ video, thumb, ...p }) => ({ ...p, hasVideo: !!video, hasThumb: !!thumb })),
     liked: s.liked,
     saved: s.saved,
     comments: s.comments,
   };
   await run(KV, 'readwrite', (st) => st.put(snap, SNAPSHOT_KEY));
 
-  // Videos gelöschter Clips erst entfernen, wenn der Snapshot ohne sie gespeichert ist
+  // Videos und Vorschaubilder gelöschter Clips erst entfernen, wenn der Snapshot ohne sie gespeichert ist
   const ids = new Set(s.posted.map((p) => p.id));
-  for (const [id, url] of storedVideos) {
-    if (ids.has(id)) continue;
-    await run(VIDEOS, 'readwrite', (st) => st.delete(id));
-    storedVideos.delete(id);
-    URL.revokeObjectURL(url);
+  for (const [store, stored] of [[VIDEOS, storedVideos], [THUMBS, storedThumbs]] as const) {
+    for (const [id, url] of stored) {
+      if (ids.has(id)) continue;
+      await run(store, 'readwrite', (st) => st.delete(id));
+      stored.delete(id);
+      URL.revokeObjectURL(url);
+    }
   }
 }
 
 export function markVideosStored(posts: Post[]) {
-  for (const p of posts) if (p.video) storedVideos.set(p.id, p.video);
+  for (const p of posts) {
+    if (p.video) storedVideos.set(p.id, p.video);
+    if (p.thumb) storedThumbs.set(p.id, p.thumb);
+  }
 }
 
 /** Bittet den Browser, die Daten nicht bei Speicherknappheit zu löschen. */

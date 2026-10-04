@@ -74,6 +74,8 @@ export type Action =
   | { type: 'setDraft'; value: string }
   | { type: 'setAud'; value: number }
   | { type: 'publish' }
+  | { type: 'setThumb'; id: string; url: string }
+  | { type: 'openClip'; id: string }
   | { type: 'askDelete'; id: string }
   | { type: 'deletePost' };
 
@@ -161,6 +163,12 @@ export function reducer(s: State, a: Action): State {
         sound: 'Originalton · ' + name, likes: 0, cc: 0, video: s.media?.url,
       };
       return { ...s, posted: [np, ...s.posted], media: null, draft: '', idx: 0, prog: 0, tab: 'feed' };
+    }
+    case 'setThumb':
+      return { ...s, posted: s.posted.map((p) => (p.id === a.id ? { ...p, thumb: a.url } : p)) };
+    case 'openClip': {
+      const idx = s.posted.findIndex((p) => p.id === a.id);
+      return idx < 0 ? s : { ...s, tab: 'feed', idx, prog: 0, paused: false, sheet: '' };
     }
     case 'askDelete':
       return { ...s, sheet: 'delete', delId: a.id };

@@ -13,6 +13,8 @@ export type Post = {
   cc: number;
   /** Object-URL eines echten Clips (nur lokal auf diesem Gerät). */
   video?: string;
+  /** Object-URL des JPEG-Vorschaubilds; leerer String = Erzeugen fehlgeschlagen */
+  thumb?: string;
 };
 
 export type Media = { url: string; mime: string };

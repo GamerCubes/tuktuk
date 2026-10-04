@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef } from 'react';
 import { initialState, reducer, TICK_MS } from './state';
 import { loadState, markVideosStored, requestPersistence, saveState } from './storage';
+import { makeThumbnail } from './media';
 import Feed from './screens/Feed';
 import Family from './screens/Family';
 import Recorder from './screens/Recorder';
@@ -12,6 +13,7 @@ import { CommentsSheet, DeleteSheet, InviteSheet, ProfileSheet, ShareSheet } fro
 export default function App() {
   const [s, dispatch] = useReducer(reducer, initialState);
   const saving = useRef(Promise.resolve());
+  const thumbing = useRef(new Set<string>());
 
   useEffect(() => {
     const t = setInterval(() => dispatch({ type: 'tick' }), TICK_MS);
@@ -34,6 +36,18 @@ export default function App() {
     if (!s.loaded) return;
     saving.current = saving.current.then(() => saveState(s)).catch(() => {});
   }, [s.loaded, s.profile, s.posted, s.liked, s.saved, s.comments]);
+
+  // Fehlende Vorschaubilder nacheinander erzeugen – auch für Clips von vor #13.
+  // Immer nur ein Video zur Zeit, damit schwache Geräte nicht überlastet werden.
+  useEffect(() => {
+    if (!s.loaded) return;
+    const p = s.posted.find((x) => x.video && x.thumb === undefined && !thumbing.current.has(x.id));
+    if (!p?.video) return;
+    thumbing.current.add(p.id);
+    makeThumbnail(p.video).then((blob) =>
+      dispatch({ type: 'setThumb', id: p.id, url: blob ? URL.createObjectURL(blob) : '' }),
+    );
+  }, [s.loaded, s.posted]);
 
   const props = { s, dispatch };
 
