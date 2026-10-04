@@ -99,6 +99,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .empty-hint { margin-top: 10px; border: 2px dashed #1A1AA766; border-radius: 12px; padding: 16px; text-align: center; font-size: 14px; line-height: 1.4; color: var(--ink); }
 .empty-hint .pill { margin-top: 12px; }
 
+.load-error { background: var(--blue); padding: 0 32px; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+.load-error h1 { font-size: 24px; }
+.load-error p { font-size: 15px; line-height: 1.45; margin-top: 12px; }
+
 /* Familie */
 .reminder { margin-top: 12px; background: var(--sky); border-radius: 12px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; }
 .reminder-day { font-size: 26px; width: 44px; text-align: center; }

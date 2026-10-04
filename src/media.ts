@@ -104,7 +104,12 @@ export function makeThumbnail(url: string): Promise<Blob | null> {
       resolve(blob);
     };
     const timer = setTimeout(() => finish(null), THUMB_TIMEOUT_MS);
-    v.onloadeddata = () => {
+    // Erst auf 0,1 s springen und nach dem Sprung zeichnen: Safari meldet Daten teils,
+    // bevor ein Bild dekodiert ist – das ergäbe ein schwarzes Vorschaubild.
+    v.onloadedmetadata = () => {
+      v.currentTime = 0.1;
+    };
+    v.onseeked = () => {
       const vw = v.videoWidth;
       const vh = v.videoHeight;
       const w = THUMB_WIDTH;
@@ -120,8 +125,6 @@ export function makeThumbnail(url: string): Promise<Blob | null> {
     };
     v.onerror = () => finish(null);
     v.src = url;
-    // iOS lädt ohne Abspielversuch keine Bilddaten
-    v.play().catch(() => {});
   });
 }
 

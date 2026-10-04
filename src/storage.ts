@@ -34,7 +34,11 @@ function db(): Promise<IDBDatabase> {
       const d = req.result;
       for (const name of [KV, VIDEOS, THUMBS]) if (!d.objectStoreNames.contains(name)) d.createObjectStore(name);
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      // Ein neueres App-Fenster will die Datenbank aktualisieren: Verbindung freigeben statt es zu blockieren
+      req.result.onversionchange = () => req.result.close();
+      resolve(req.result);
+    };
     req.onerror = () => reject(req.error);
   });
   return dbPromise;

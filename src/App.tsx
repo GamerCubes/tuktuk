@@ -14,6 +14,7 @@ export default function App() {
   const [s, dispatch] = useReducer(reducer, initialState);
   const saving = useRef(Promise.resolve());
   const thumbing = useRef(new Set<string>());
+  const thumbBusy = useRef(false);
 
   useEffect(() => {
     const t = setInterval(() => dispatch({ type: 'tick' }), TICK_MS);
@@ -27,7 +28,7 @@ export default function App() {
         if (data) markVideosStored(data.posted);
         dispatch({ type: 'hydrate', data });
       })
-      .catch(() => dispatch({ type: 'hydrate', data: null }));
+      .catch(() => dispatch({ type: 'loadFailed' }));
   }, []);
 
   // Erst nach dem Laden speichern, sonst würde der leere Startzustand die gespeicherten Daten überschreiben.
@@ -39,14 +40,18 @@ export default function App() {
 
   // Fehlende Vorschaubilder nacheinander erzeugen – auch für Clips von vor #13.
   // Immer nur ein Video zur Zeit, damit schwache Geräte nicht überlastet werden.
+  // Fehlgeschlagene Versuche (thumb '') werden nicht gespeichert und beim nächsten Start erneut versucht.
   useEffect(() => {
-    if (!s.loaded) return;
+    if (!s.loaded || thumbBusy.current) return;
     const p = s.posted.find((x) => x.video && x.thumb === undefined && !thumbing.current.has(x.id));
     if (!p?.video) return;
     thumbing.current.add(p.id);
-    makeThumbnail(p.video).then((blob) =>
-      dispatch({ type: 'setThumb', id: p.id, url: blob ? URL.createObjectURL(blob) : '' }),
-    );
+    thumbBusy.current = true;
+    makeThumbnail(p.video).then((blob) => {
+      thumbBusy.current = false;
+      // setThumb erzeugt immer ein neues posted-Array und stößt so das nächste Vorschaubild an
+      dispatch({ type: 'setThumb', id: p.id, url: blob ? URL.createObjectURL(blob) : '' });
+    });
   }, [s.loaded, s.posted]);
 
   const props = { s, dispatch };
@@ -54,7 +59,12 @@ export default function App() {
   return (
     <div className="wrap">
       <div className="phone">
-        {!s.loaded ? null : (
+        {s.loadError ? (
+          <div className="screen load-error" role="alert">
+            <h1 className="display">Deine Clips konnten nicht geladen werden</h1>
+            <p>Schließ TukTuk ganz und öffne es neu. Deine gespeicherten Clips bleiben dabei erhalten.</p>
+          </div>
+        ) : !s.loaded ? null : (
           <>
             {s.tab === 'feed' && <Feed {...props} />}
             {s.tab === 'fam' && <Family {...props} />}
