@@ -12,6 +12,7 @@
 - #7, #8, #10, #13 Done.
 
 ## Nächster Schritt
-- **#20 „App für die Familie öffnen – gemeinsamer Feed" liegt in *Option*** (21.10.2026). PO-Entscheidungen: gemeinsamer Feed auf den eigenen Handys, Zugang per geheimem Familien-Code, bis 10 Personen, alte Clips des PO werden mit hochgeladen. Erstmals ein Online-Speicher nötig → Rahmenänderung. Nächster Schritt: Karte nach *Next* und `/next-spalte` (offene Punkte stehen im Issue: Anbieter, offline, Löschrechte, Aufteilung in mehrere Karten).
+- **#20 „Familien-Code und gemeinsamer Feed" ist gegrillt und liegt in *Next*** (21.10.2026, Issue-Body final). Karte 1 von 3: Familien-Code per Link/QR, Mitglied aus Liste wählen, gemeinsamer Feed über Supabase (kostenlos, Frankfurt), Herzen/Kommentare vorerst ausgeblendet, alte Clips bleiben „nur auf diesem Gerät" im Profil. PO legt das Supabase-Konto mit Anleitung an. Nächster Schritt: PO zieht #20 nach *In Conception* → `/conception`.
+- Folge-Karten in *Option*: #21 Herzen/Kommentare gemeinsam (Karte 2), #22 alte Clips hochladen (Karte 3), #23 Code ändern/Person entfernen, #24 Benachrichtigungen, #25 Clip an Einzelne, #26 Familienbaum.
 - `/worktree-cleanup` aus dem Haupt-Checkout (u. a. `offene-issues-9784f1`, `gamercubes-tuktuk-8-c85c6a`, `gamercubes-tuktuk-13`, `board-tasks-review-b07623`).
 - Hinweis Preview: `.claude/launch.json` (untracked) zeigt mit `cwd` auf den Haupt-Checkout – zum Testen eines Worktrees vorübergehend einen eigenen Eintrag mit anderem Port anlegen.
